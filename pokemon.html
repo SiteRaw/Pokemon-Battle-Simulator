@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SiteRaw "Pokémon" Style Battle</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" type="text/css" href="pokemon.css" />
+</head>
+<body>
+  <div id="game-container"></div>
+  <div id="attack_info">
+    <p id="attack0"></p><p id="attack1"></p><p id="attack2"></p><p id="attack3"></p>
+  </div>
+  <div id="debugg"></div>
+  <script>
+    const calc = [12, 0, 13, 4, 3, 2]; // miss, crit, super crit
+    let userHP = 300;
+    let opHP = 300;
+    let playerMove = 0;
+
+    // Pokémon data with their attacks and sprites
+    const pokemonData = {
+      Blastoise: {
+        attacks: ["Bubble Beam", "Water Pulse", "Blizzard", "Hydro Cannon"],
+        sprite: "blastoise",
+      },
+      Gengar: {
+        attacks: ["Hex", "Dark Pulse", "Luster Purge", "Poltergeist"],
+        sprite: "gengar",
+      },
+      Venusaur: {
+        attacks: ["Infestation", "Poison Powder", "Leaf Storm", "Frenzy Plant"],
+        sprite: "venusaur",
+      },
+      Arbok: {
+        attacks: ["Poison Fang", "Sparkly Swirl", "Dragon Tail", "Toxic Spikes"],
+        sprite: "arbok",
+      },
+      Marowak: {
+        attacks: ["Bone Rush", "Flamethrower", "Sandstorm", "Bonemerang"],
+        sprite: "marowak",
+      },
+    };
+
+    // Attack data
+    const attacks = {
+      "Bubble Beam": { name: "Bubble Beam", damage: 30, missChance: 0, critChance: 2, type: "Water" },
+      "Water Pulse": { name: "Water Pulse", damage: 40, missChance: 0, critChance: 1, type: "Water" },
+      "Blizzard": { name: "Blizzard", damage: 50, missChance: 1, critChance: 3, type: "Ice" },
+      "Hydro Cannon": { name: "Hydro Cannon", damage: 70, missChance: 1, critChance: 1, type: "Water" },
+      "Hex": { name: "Hex", damage: 30, missChance: 0, critChance: 2, type: "Ghost" },
+      "Dark Pulse": { name: "Dark Pulse", damage: 50, missChance: 0, critChance: 1, type: "Dark" },
+      "Luster Purge": { name: "Luster Purge", damage: 60, missChance: 1, critChance: 2, type: "Psychic" },
+      "Poltergeist": { name: "Poltergeist", damage: 70, missChance: 1, critChance: 1, type: "Ghost" },
+      "Infestation": { name: "Infestation", damage: 25, missChance: 0, critChance: 3, type: "Bug" },
+      "Poison Powder": { name: "Poison Powder", damage: 30, missChance: 1, critChance: 4, type: "Poison" },
+      "Leaf Storm": { name: "Leaf Storm", damage: 55, missChance: 1, critChance: 3, type: "Grass" },
+      "Frenzy Plant": { name: "Frenzy Plant", damage: 70, missChance: 1, critChance: 1, type: "Grass" },
+      "Poison Fang": { name: "Poison Fang", damage: 30, missChance: 0, critChance: 1, type: "Poison" },
+      "Sparkly Swirl": { name: "Sparkly Swirl", damage: 20, missChance: 0, critChance: 3, type: "Fairy" },
+      "Dragon Tail": { name: "Dragon Tail", damage: 35, missChance: 1, critChance: 3, type: "Dragon" },
+      "Toxic Spikes": { name: "Toxic Spikes", damage: 70, missChance: 2, critChance: 2, type: "Poison" },
+      "Bone Rush": { name: "Bone Rush", damage: 35, missChance: 0, critChance: 2, type: "Ground" },
+      "Flamethrower": { name: "Flamethrower", damage: 40, missChance: 0, critChance: 1, type: "Fire" },
+      "Sandstorm": { name: "Sandstorm", damage: 60, missChance: 2, critChance: 3, type: "Rock" },
+      "Bonemerang": { name: "Bonemerang", damage: 70, missChance: 1, critChance: 1, type: "Ground" },
+    };
+
+    // Randomly select Pokémon
+    const pokemonList = Object.keys(pokemonData);
+    const playerPokemon = pokemonList[Math.floor(Math.random() * pokemonList.length)];
+    let opponentPokemon = pokemonList[Math.floor(Math.random() * pokemonList.length)];
+    while (opponentPokemon === playerPokemon) {
+      opponentPokemon = pokemonList[Math.floor(Math.random() * pokemonList.length)];
+    }
+
+    // Attack function
+    function attack(attacker, defender, attackName, isPlayer) {
+      const attack = attacks[attackName];
+      const crithres = [attack.critChance * calc[2] - calc[3], attack.critChance * calc[4] - calc[5]];
+      const miss = Math.floor(Math.random() * 100);
+      const messageDiv = isPlayer ? "message" : "message_opp";
+
+      if (miss >= 100 - attack.missChance * calc[0] - calc[1]) {
+        document.getElementById(messageDiv).innerHTML = `${attacker}'s ${attack.name} missed!`;
+      } else {
+        const critical = Math.floor(Math.random() * 100); let critText = ""; let damage = attack.damage;
+	if(critical < crithres[0]) {
+	  if(critical < crithres[1]) {damage *= 4; critText = " Super critical hit!";}
+	  else {damage *= 2; critText = " It's a critical hit!";}
+	}
+
+        if (defender === opponentPokemon) {
+          opHP -= damage;
+          if (opHP < 0) opHP = 0;
+          document.getElementById("apHP").innerHTML = opHP;
+          document.getElementById("op-hp-fill").style.width = `${(opHP / 300) * 100}%`;
+        } else if (defender === playerPokemon) {
+          userHP -= damage;
+          if (userHP < 0) userHP = 0;
+          document.getElementById("myHP").innerHTML = userHP;
+          document.getElementById("player-hp-fill").style.width = `${(userHP / 300) * 100}%`;
+        }
+
+        document.getElementById(messageDiv).innerHTML = `${attacker} used ${attack.name}.${critText}`;
+        if (defender === opponentPokemon && opHP === 0) {
+          document.getElementById(messageDiv).innerHTML += ` ${opponentPokemon} fainted!`;
+        } else if (defender === playerPokemon && userHP === 0) {
+          document.getElementById(messageDiv).innerHTML += ` ${playerPokemon} fainted!`;
+        }
+      }
+      if (isPlayer) {
+        playerMove = 1;
+        compPokemon();
+      }
+    }
+
+    // Opponent's turn
+    function compPokemon() {
+      if (playerMove === 1 && opHP !== 0 && userHP !== 0) {
+        const move = Math.floor(Math.random() * 4);
+        const attackName = pokemonData[opponentPokemon].attacks[move];
+        attack(opponentPokemon, playerPokemon, attackName, false);
+        playerMove = 0;
+      }
+    }
+
+    // Render game UI
+    function renderGame() {
+      const gameContainer = document.getElementById("game-container");
+      gameContainer.innerHTML = `
+        <div class="game">
+          <div class="opponent">
+            <div class="stats">
+              <div class="top">
+                <div class="pokeballs">
+                  <div class="pokeball"></div>
+                  <div class="pokeball"></div>
+                  <div class="pokeball"></div>
+                  <div class="pokeball"></div>
+                  <div class="pokeball"></div>
+                </div>
+                <div id="apHP" class="hp-count">300</div>
+              </div>
+              <div class="hp-bar">
+                <div id="op-hp-fill" class="hp-fill" style="width: 100%;"></div>
+              </div>
+              <span class="name">${opponentPokemon}</span>
+              <span class="level">86</span>
+            </div>
+            <img class="pokemon" src="sprite/${pokemonData[opponentPokemon].sprite}.gif" alt="A sprite of ${opponentPokemon}" />
+          </div>
+          <div class="player">
+            <div class="stats">
+              <div class="top">
+                <div class="pokeballs">
+                  <div class="pokeball"></div>
+                  <div class="pokeball"></div>
+                  <div class="pokeball"></div>
+                  <div class="pokeball"></div>
+                  <div class="pokeball"></div>
+                </div>
+                <div id="myHP" class="hp-count">300</div>
+              </div>
+              <div class="hp-bar">
+                <div id="player-hp-fill" class="hp-fill" style="width: 100%;"></div>
+              </div>
+              <span class="name">${playerPokemon}</span>
+              <span class="level">86</span>
+            </div>
+            <img class="pokemon" src="sprite/${pokemonData[playerPokemon].sprite}-b.gif" alt="A gif from ${playerPokemon}'s back sprite" />
+          </div>
+        </div>
+        <div class="box">
+	  <div class="messages">
+	  <div id="message" class="message">
+            What should ${playerPokemon} do?
+          </div>
+	  <div id="message_opp" class="message">
+            Waiting for opponent's move...
+          </div>
+	  </div>
+          <div class="actions">
+            ${pokemonData[playerPokemon].attacks
+              .map(attack => `
+                <div class="action-button">
+                  <p class="button type-${attacks[attack].type.toLowerCase()}" onclick="attack('${playerPokemon}', '${opponentPokemon}', '${attack}', true)"><span class="button-text">${attack}</span><span class="type-icon type-${attacks[attack].type.toLowerCase()}">${attacks[attack].type}</span></p>
+                </div>
+              `)
+              .join('')}
+          </div>
+        </div>
+      `;
+
+      // Populate attack info
+      const playerAttacks = pokemonData[playerPokemon].attacks;
+      playerAttacks.forEach((attackName, index) => {
+        const attack = attacks[attackName];
+        const hitRate = `${100 - attack.missChance * calc[0] - calc[1]}%`;
+        document.getElementById(`attack${index}`).innerHTML = `
+          <span class="float type-icon type-${attack.type.toLowerCase()}">${attack.type}</span> ${attack.name}<br/>
+          ${attack.damage} Damage<br/> ${hitRate} Hit Rate<br/> ${attack.critChance * calc[2] - calc[3]}% Critical Chance<br/> ${attack.critChance * calc[4] - calc[5]}% Super Critical<br/>
+        `;
+      });
+    }
+
+    // Initialize game
+    window.onload = renderGame;
+  </script>
+</body>
+</html>
