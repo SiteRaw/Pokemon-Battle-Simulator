@@ -10,4 +10,4 @@ Doesn't use Canvas, just CSS.
 - CSS
 - Javascript
 
-  Stats and attacks are editable in the HTML file.
+Stats and attacks are editable in the HTML file.
