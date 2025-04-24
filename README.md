@@ -11,3 +11,5 @@ Doesn't use Canvas, just CSS.
 - Javascript
 
 Stats and attacks are editable in the HTML file.
+
+Sprites from [Pokémon DB](https://www.pokemondb.net).
